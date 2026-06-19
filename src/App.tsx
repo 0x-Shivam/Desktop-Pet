@@ -195,6 +195,95 @@ export default function App() {
     if (newVy !== velRef.current.y || newVx !== velRef.current.x) setVelocity({ x: newVx, y: newVy });
 
 
+     // Eye Tracking Math
 
+     const dx = mouseRef.current.x - (newX + 48);
+     const dy = mouseRef.current.y - (newY + 48);
+     const distance = Math.sqrt(dx * dx + dy * dy);
+     let newLookX = 0;
+     let newLookY = 0;
+
+     if (!['sleep', 'happy', 'dizzy', 'squashed'].includes(stateRef.current)) {
+      if (distance > 10) {
+        newLookX = Math.abs(dx) > 15 ? Math.sign(dx) : 0;
+        newLookY = Math.abs(dy) > 15 ? Math.sign(dy) : 0;
+      }
+     }
+
+     if (newLookX !== lookRef.current.x || newLookY !== lookRef.current.y) setLookDir({ x: newLookX, y: newLookY });
+
+     frameRef.current++;
+    }, 1000 / fps);
+
+    return () => clearInterval(interval);
+  }, [direction]);
+
+
+  // BRAIN: Random Behaviors 
+
+  useEffect(() => {
+    const brain = setInterval(() => {
+      if (isDraggingRef.current || ['fall', 'run_away', 'dizzy', 'squashed', 'zoomies'].includes(stateRef.current) || isHappyRef.current || showChat) return;
+      const rand = Math.random();
+      if (stateRef.current === 'sleep') {
+        if (rand < 0.2) setPetState('sit');
+      } else {
+        if (rand < 0.05) {
+          setPetState('zoomies');
+          setTimeout(() => { if(stateRef.current === 'zoomies') setPetState('sleep'); }, 4000);
+        } else if (rand < 0.3) { setPetState('idle'); } 
+        else if (rand < 0.5) { setPetState('sit'); } 
+        else if (rand < 0.8) { setPetState('walk'); setDirection(Math.random() > 0.5 ? 'right' : 'left'); } 
+        else { setPetState('sleep'); }
+      }
+    }, 3000);
+    return () => clearInterval(brain);
+  }, [showChat]);
+
+
+    // Gemini Action 
+
+    const handleSendMessage = async (e) => {
+       e.preventDefault();
+       if (!chatInput.trim()) return;
+       setPetState('sit');
+
+       const newMessages = [...chatMessages, { role: 'user', text: chatInput }];
+       setChatMessages(newMessages);
+       setChatInput('');
+       setIsThinking(true);
+
+       const responseText = await fetchGemini(chatInput);
+
+       isHappyRef.current = true; 
+       setPetState('happy');
+       setTimeout(() => {
+        isHappyRef.current = false;
+      if (stateRef.current === 'happy') setPetState('sit');
+    }, 2000);
+
+    setChatMessages([...newMessages, { role: 'pet', text: responseText }]);
+    setIsThinking(false);
+  };
+
+
+  // --- INTERACTIONS ---
+
+
+  const handleMouseDown = (e) => {
+    isDraggingRef.current = true;
+    setPetState('drag');
+    setVelocity({ x: 0, y: 0 });
+    lastMousePosRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+
+  const handleDoubleClick = () => {
+    setShowChat(!showChat);
+    setPetState('sit');
+  };
+
+  const handleMouseMove
+       
 
     
