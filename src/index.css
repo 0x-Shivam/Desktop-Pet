@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+:root, html, body, #root {
+    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0) !important;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+
+
+    /* Prevent text highlighting when playing with the pet */
+
+
+    body {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .hide-scollbar::-webkit-scrollbar {display: none;}
+    { -ms-overflow-style: none; scrollbar-width: none; }
