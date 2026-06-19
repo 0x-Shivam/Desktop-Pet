@@ -283,7 +283,42 @@ export default function App() {
     setPetState('sit');
   };
 
-  const handleMouseMove
-       
+  const handleMouseMove = useCallback((e) => {
+    if (isDraggingRef.current) {
+      const dx = Math.abs(e.clientX - lastMousePosRef.current.x);
+      const dy = Math.abs(e.clientY - lastMousePosRef.current.y);
+      const speed = dx + dy;
+
+      // Make dizzy if it shake
+
+      if (speed > 40 && stateRef.current !==='dizzy') {
+        setPetState('dizzy');
+      } else if (speed < 5 && stateRef.current === 'dizzy') {
+        setPetState('drag');
+      }
+
+
+      lastMousePosRef.current = { x: e.clientX, y: e.clientY };
+      setPosition({ x: e.clientX - 50, y: e.clientY - 50 });
+    }
+  }, []);
+
+
+  const handleMouseUp = useCallback(() => {
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
+      setPetState('fall');
+    }
+
+   }, []);
+   
+   
+   const handlePetHoverMove = (e) => {
+    if 
+  
+   }
+
+
+
 
     
