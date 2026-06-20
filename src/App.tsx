@@ -357,9 +357,31 @@ export default function App() {
                 </div>
               </div>
             ))}
-
-            {isThinking && ( 
+            {isThinking && (
               <div className="flex justify-start">
-                <div className='bg-white/70 text-black'
+                <div className="bg-white/70 text-black rounded-2xl rounded-bl-none px-4 py-2 text-sm animate-pulse">Thinking...</div>
               </div>
             )}
+            <div ref={chatEndRef} />
+          </div>
+
+          <form onSubmit={handleSendMessage} className="p-3 bg-black/30 border-t border-white/10 flex gap-2">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="Talk to your pet..."
+              className="flex-1 bg-white text-black placeholder-gray-500 rounded-xl px-3 py-2 text-sm outline-none shadow-inner"
+              disabled={isThinking}
+            />
+            <button type="submit" disabled={!chatInput.trim() || isThinking} className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 text-white rounded-xl px-4 py-2 font-bold transition-colors">
+              ↑
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
