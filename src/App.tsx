@@ -306,23 +306,60 @@ export default function App() {
 
   return (
     <div className="w-screen h-screen bg-transparent overflow-hidden select-none relative">
-
-
-{/* --- THE PET --- */}
-
-<div
-  classname="absolute w-28 h-28 cursor grab active:cursor grabbing z-50 drop-shadow-xl"
-  style={{
-    left: position.x,
-    top: position.y
-    transform: `
+      
+      {/* --- THE PET --- */}
+      <div 
+        className="absolute w-28 h-28 cursor-grab active:cursor-grabbing z-50 drop-shadow-xl"
+        style={{ 
+          left: position.x, 
+          top: position.y,
+          transform: `
             translateY(${['walk', 'zoomies'].includes(petState) ? Math.sin(frameRef.current * 0.5) * 4 : 0}px)
             scale(${petState === 'squashed' ? '1.5, 0.4' : petState === 'happy' ? '1.05, 1.05' : '1, 1'})
             scaleY(${petState === 'sleep' ? 1 + Math.sin(frameRef.current * 0.05) * 0.05 : 1})
             rotate(${petState === 'dizzy' ? Math.sin(frameRef.current * 0.3) * 15 : petState === 'fall' ? 5 : 0}deg)
           `,
+          transition: petState === 'sleep' ? 'transform 0.5s ease-in-out' : 'transform 0.1s linear'
+        }}
+        onMouseDown={handleMouseDown}
+        onDoubleClick={handleDoubleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onMouseMove={handlePetHoverMove}
+      >
+        {petState === 'zoomies' && <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-white/80 text-xl font-bold animate-pulse tracking-widest italic drop-shadow-md pointer-events-none">ZOOM!</div>}
+        {petState === 'sleep' && <div className="absolute -top-8 left-1/2 text-white/80 font-bold text-sm animate-bounce pointer-events-none">Zzz...</div>}
+        {petState === 'happy' && <><div className="absolute -top-4 -left-2 text-pink-400 text-lg animate-ping pointer-events-none">♥</div><div className="absolute -top-8 right-0 text-pink-400 text-xl animate-bounce delay-75 pointer-events-none">♥</div></>}
+        {petState === 'dizzy' && <div className="absolute -top-4 left-1/2 text-yellow-300 text-xl animate-spin pointer-events-none">✨</div>}
+        
+        {generatePixelPet('#3b82f6', ['run_away', 'zoomies'].includes(petState) ? 'walk' : ['fall', 'drag', 'squashed'].includes(petState) ? 'idle' : petState, direction, lookDir)}
+      </div>
 
-          transition: petState === 'sleep' ? 'transform 0.5s ease-in-out' : transform 0.1s linear'
-  }}
-          onMouse
-></div>
+      {/* --- GEMINI CHAT INTERFACE --- */}
+      {showChat && (
+        <div 
+          className="absolute bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl shadow-2xl z-40 w-80 max-h-96 flex flex-col overflow-hidden"
+          style={{ 
+            left: Math.max(20, Math.min(position.x - 100, window.innerWidth - 340)), 
+            bottom: window.innerHeight - position.y + 20 
+          }}
+        >
+          <div className="bg-black/20 p-3 border-b border-white/10 flex justify-between items-center text-white">
+            <h2 className="font-bold flex items-center gap-2">✨ Pet Brain</h2>
+            <button onClick={() => setShowChat(false)} className="hover:text-red-400 font-bold px-2">✕</button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-black/10">
+            {chatMessages.map((msg, idx) => (
+              <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm font-medium ${msg.role === 'user' ? 'bg-blue-500 text-white rounded-br-none' : 'bg-white text-black rounded-bl-none shadow-md'}`}>
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+
+            {isThinking && ( 
+              <div className="flex justify-start">
+                <div className='bg-white/70 text-black'
+              </div>
+            )}
