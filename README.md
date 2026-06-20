@@ -18,6 +18,16 @@ The pet is powered by the **Google Gemini API**. I hooked it up to the Gemini 2.
 
  * Mostly while build dmg file and troubleshooting code.
 
+
+ ## To run .dmg 
+ * Download Releases
+ * Draw into Application 
+ * Open terminal and run this 
+    ```
+    xattr -cr /Applications/DesktopPet.app
+    ```
+    then open Application it will run without any error and damage 
+
 ### 1. What you need installed first:
 * [Node.js](https://nodejs.org/) (for npm)
 * [Rust](https://www.rust-lang.org/tools/install) (Tauri needs this to compile the native Mac window)
