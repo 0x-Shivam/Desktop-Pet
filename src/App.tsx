@@ -2,19 +2,16 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 // --- GEMINI API HELPER ---
 const fetchGemini = async (prompt, systemInstruction = "You are a sassy, helpful, and slightly mischievous desktop pixel pet. Keep answers brief (1-3 sentences max). Use cute emojis.") => {
-
   const apiKey = ""; // API key is injected by the execution environment
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
   const payload = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
-
     systemInstruction: { parts: [{ text: systemInstruction }] }
   };
 
   let delay = 1000;
   for (let i = 0; i < 5; i++) {
-
     try {
       const res = await fetch(url, {
         method: "POST",
@@ -26,7 +23,6 @@ const fetchGemini = async (prompt, systemInstruction = "You are a sassy, helpful
       return data.candidates?.[0]?.content?.parts?.[0]?.text || "*confused meow*";
     } catch (err) {
       if (i === 4) return "*sad beep* My brain's cloud connection is fuzzy right now. Try again later!";
-
       await new Promise(r => setTimeout(r, delay));
       delay *= 2;
     }
@@ -34,8 +30,6 @@ const fetchGemini = async (prompt, systemInstruction = "You are a sassy, helpful
 };
 
 // --- PIXEL ART ASSET GENERATOR ---
-
-
 const generatePixelPet = (color, state, direction, lookDir) => {
   const pixelSize = 5;
   let pixels = [];
@@ -70,7 +64,6 @@ const generatePixelPet = (color, state, direction, lookDir) => {
       let fill = '#ffffff'; 
       if (val === 1) fill = '#111827'; 
       if (val === 2) fill = color;     
-
       if (val === 4) fill = '#111827'; 
       if (val === 5) fill = '#f472b6'; 
       if (val === 6) fill = '#fcd34d'; 
@@ -85,18 +78,15 @@ const generatePixelPet = (color, state, direction, lookDir) => {
   );
 };
 
-
 export default function App() {
   const [position, setPosition] = useState({ x: window.innerWidth / 2 - 50, y: 0 });
   const [petState, setPetState] = useState('fall'); 
   const [direction, setDirection] = useState('right');
-
   const [velocity, setVelocity] = useState({ x: 0, y: 0 });
   const [lookDir, setLookDir] = useState({ x: 0, y: 0 });
   
   const [showChat, setShowChat] = useState(false);
   const [chatMessages, setChatMessages] = useState([{ role: 'pet', text: "Hey! Need something? 🐾" }]);
-
   const [chatInput, setChatInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const chatEndRef = useRef(null);
@@ -108,7 +98,6 @@ export default function App() {
   const isDraggingRef = useRef(false);
   const hoverTimerRef = useRef(null);
   const frameRef = useRef(0);
-
   const pettingCountRef = useRef(0);
   const lastMousePosRef = useRef({ x: 0, y: 0 });
   const isHappyRef = useRef(false);
@@ -116,7 +105,6 @@ export default function App() {
   const lookRef = useRef({ x: 0, y: 0 });
 
   // Sync state to refs
-
   useEffect(() => { stateRef.current = petState; }, [petState]);
   useEffect(() => { posRef.current = position; }, [position]);
   useEffect(() => { velRef.current = velocity; }, [velocity]);
@@ -128,7 +116,6 @@ export default function App() {
   }, [chatMessages, isThinking, showChat]);
 
   // Track global mouse
-
   useEffect(() => {
     const trackMouse = (e) => { mouseRef.current = { x: e.clientX, y: e.clientY }; };
     window.addEventListener('mousemove', trackMouse);
@@ -136,8 +123,6 @@ export default function App() {
   }, []);
 
   // --- PHYSICS ENGINE & MOVEMENT LOOP ---
-
-
   useEffect(() => {
     const fps = 60;
     const interval = setInterval(() => {
@@ -146,25 +131,20 @@ export default function App() {
       let newX = posRef.current.x;
       let newY = posRef.current.y;
       let newVy = velRef.current.y;
-
       let newVx = velRef.current.x;
 
       const groundLevel = window.innerHeight - 100; // Floor boundary
       const isFalling = newY < groundLevel;
 
       // Gravity Simulation
-
       if (isFalling) {
         newVy += 0.5; // Gravity pull
         if (!['fall', 'zoomies'].includes(stateRef.current)) setPetState('fall');
       } else {
         // Squish effect if landing fast
-
-
         if (stateRef.current === 'fall' && Math.abs(newVy) > 12) {
           setPetState('squashed');
           setTimeout(() => { if (stateRef.current === 'squashed') setPetState('idle'); }, 500);
-
         } else if (stateRef.current === 'fall') {
           setPetState('idle'); 
         }
@@ -172,55 +152,46 @@ export default function App() {
         newY = groundLevel;
       }
 
-
       // Walking Logic
+      if (['walk', 'run_away', 'zoomies'].includes(stateRef.current)) {
+        let speed = stateRef.current === 'zoomies' ? 15 : stateRef.current === 'run_away' ? 8 : 1.5;
+        newX += direction === 'right' ? speed : -speed;
 
-      if (['walk', 'run_away', 'zoomies'].includes(stateRef.current)){
-        let speed = stateRef.current === 'zoomies' ? 15 : stateRef.current === 'run away' ? 8 : 1.5;
-
+        // Bounce off screen edges
+        if (newX <= 0) {
+          newX = 0;
+          setDirection('right');
+        } else if (newX >= window.innerWidth - 100) {
+          newX = window.innerWidth - 100;
+          setDirection('left');
+        }
       }
 
-      // Bounce off screen edges
-      if(newX <= 0) {
-        newX = 0;
-        setDirection('right');
-      } else if (newX >= window.innerWidth - 100) {
-        newX = window.innerWidth - 100;
-        setDirection('left');
+      if (newX !== posRef.current.x || newY !== posRef.current.y) setPosition({ x: newX, y: newY });
+      if (newVy !== velRef.current.y || newVx !== velRef.current.x) setVelocity({ x: newVx, y: newVy });
+
+      // Eye Tracking Math
+      const dx = mouseRef.current.x - (newX + 48); 
+      const dy = mouseRef.current.y - (newY + 48); 
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      let newLookX = 0;
+      let newLookY = 0;
+      
+      if (!['sleep', 'happy', 'dizzy', 'squashed'].includes(stateRef.current)) {
+        if (distance > 10) {
+          newLookX = Math.abs(dx) > 15 ? Math.sign(dx) : 0;
+          newLookY = Math.abs(dy) > 15 ? Math.sign(dy) : 0;
+        }
       }
-    }
+      if (newLookX !== lookRef.current.x || newLookY !== lookRef.current.y) setLookDir({ x: newLookX, y: newLookY });
 
-    if (newX !== posRef.current.x || newY !== posRef.current.y) setPosition({ x: newX, y: newY });
-
-    if (newVy !== velRef.current.y || newVx !== velRef.current.x) setVelocity({ x: newVx, y: newVy });
-
-
-     // Eye Tracking Math
-
-     const dx = mouseRef.current.x - (newX + 48);
-     const dy = mouseRef.current.y - (newY + 48);
-     const distance = Math.sqrt(dx * dx + dy * dy);
-     let newLookX = 0;
-     let newLookY = 0;
-
-     if (!['sleep', 'happy', 'dizzy', 'squashed'].includes(stateRef.current)) {
-      if (distance > 10) {
-        newLookX = Math.abs(dx) > 15 ? Math.sign(dx) : 0;
-        newLookY = Math.abs(dy) > 15 ? Math.sign(dy) : 0;
-      }
-     }
-
-     if (newLookX !== lookRef.current.x || newLookY !== lookRef.current.y) setLookDir({ x: newLookX, y: newLookY });
-
-     frameRef.current++;
+      frameRef.current++;
     }, 1000 / fps);
 
     return () => clearInterval(interval);
   }, [direction]);
 
-
-  // BRAIN: Random Behaviors 
-
+  // --- BRAIN: Random Behaviors ---
   useEffect(() => {
     const brain = setInterval(() => {
       if (isDraggingRef.current || ['fall', 'run_away', 'dizzy', 'squashed', 'zoomies'].includes(stateRef.current) || isHappyRef.current || showChat) return;
@@ -240,25 +211,23 @@ export default function App() {
     return () => clearInterval(brain);
   }, [showChat]);
 
+  // --- GEMINI ACTIONS ---
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+    setPetState('sit'); 
+    
+    const newMessages = [...chatMessages, { role: 'user', text: chatInput }];
+    setChatMessages(newMessages);
+    setChatInput('');
+    setIsThinking(true);
 
-    // Gemini Action 
-
-    const handleSendMessage = async (e) => {
-       e.preventDefault();
-       if (!chatInput.trim()) return;
-       setPetState('sit');
-
-       const newMessages = [...chatMessages, { role: 'user', text: chatInput }];
-       setChatMessages(newMessages);
-       setChatInput('');
-       setIsThinking(true);
-
-       const responseText = await fetchGemini(chatInput);
-
-       isHappyRef.current = true; 
-       setPetState('happy');
-       setTimeout(() => {
-        isHappyRef.current = false;
+    const responseText = await fetchGemini(chatInput);
+    
+    isHappyRef.current = true;
+    setPetState('happy');
+    setTimeout(() => {
+      isHappyRef.current = false;
       if (stateRef.current === 'happy') setPetState('sit');
     }, 2000);
 
@@ -266,10 +235,7 @@ export default function App() {
     setIsThinking(false);
   };
 
-
   // --- INTERACTIONS ---
-
-
   const handleMouseDown = (e) => {
     isDraggingRef.current = true;
     setPetState('drag');
@@ -277,10 +243,9 @@ export default function App() {
     lastMousePosRef.current = { x: e.clientX, y: e.clientY };
   };
 
-
   const handleDoubleClick = () => {
     setShowChat(!showChat);
-    setPetState('sit');
+    setPetState('sit'); 
   };
 
   const handleMouseMove = useCallback((e) => {
@@ -288,37 +253,76 @@ export default function App() {
       const dx = Math.abs(e.clientX - lastMousePosRef.current.x);
       const dy = Math.abs(e.clientY - lastMousePosRef.current.y);
       const speed = dx + dy;
-
-      // Make dizzy if it shake
-
-      if (speed > 40 && stateRef.current !==='dizzy') {
+      
+      // Make dizzy if shaken fast!
+      if (speed > 40 && stateRef.current !== 'dizzy') {
         setPetState('dizzy');
       } else if (speed < 5 && stateRef.current === 'dizzy') {
         setPetState('drag');
       }
-
 
       lastMousePosRef.current = { x: e.clientX, y: e.clientY };
       setPosition({ x: e.clientX - 50, y: e.clientY - 50 });
     }
   }, []);
 
-
   const handleMouseUp = useCallback(() => {
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
       setPetState('fall');
     }
+  }, []);
 
-   }, []);
-   
-   
-   const handlePetHoverMove = (e) => {
-    if 
-  
-   }
+  const handlePetHoverMove = (e) => {
+    if (isDraggingRef.current || stateRef.current === 'run_away') return;
+    const dx = Math.abs(e.movementX);
+    const dy = Math.abs(e.movementY);
+    if (dx > 2 || dy > 2) {
+      pettingCountRef.current += 1;
+      // Wiggle mouse over pet to make it happy
+      if (pettingCountRef.current > 30 && !isHappyRef.current) {
+        isHappyRef.current = true;
+        setPetState('happy');
+        pettingCountRef.current = 0; 
+        setTimeout(() => {
+          isHappyRef.current = false;
+          if (stateRef.current === 'happy') setPetState('idle');
+        }, 3000);
+      }
+    }
+  };
+
+  const handleMouseEnter = () => { pettingCountRef.current = 0; };
+  const handleMouseLeave = () => { pettingCountRef.current = 0; };
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp]);
+
+  return (
+    <div className="w-screen h-screen bg-transparent overflow-hidden select-none relative">
 
 
+{/* --- THE PET --- */}
 
+<div
+  classname="absolute w-28 h-28 cursor grab active:cursor grabbing z-50 drop-shadow-xl"
+  style={{
+    left: position.x,
+    top: position.y
+    transform: `
+            translateY(${['walk', 'zoomies'].includes(petState) ? Math.sin(frameRef.current * 0.5) * 4 : 0}px)
+            scale(${petState === 'squashed' ? '1.5, 0.4' : petState === 'happy' ? '1.05, 1.05' : '1, 1'})
+            scaleY(${petState === 'sleep' ? 1 + Math.sin(frameRef.current * 0.05) * 0.05 : 1})
+            rotate(${petState === 'dizzy' ? Math.sin(frameRef.current * 0.3) * 15 : petState === 'fall' ? 5 : 0}deg)
+          `,
 
-    
+          transition: petState === 'sleep' ? 'transform 0.5s ease-in-out' : transform 0.1s linear'
+  }}
+          onMouse
+></div>
