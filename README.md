@@ -48,3 +48,10 @@ npm install
 
 # Fire it up!
 npm run tauri dev
+
+
+## Changes 
+
+Now it re-sizeable and u can do by drgging area of it 
+ 
+ **TO Quit USE - CMD + Q **

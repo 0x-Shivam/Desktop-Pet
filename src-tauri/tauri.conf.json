@@ -33,14 +33,11 @@
     "windows": [
       {
         "title": "Desktop Pet",
-        "width": 1920,
-        "height": 1080,
-        "resizable": false,
-        "fullscreen": false,
+        "width": 150,
+        "height": 150,
         "transparent": true,
         "decorations": false,
-        "alwaysOnTop": false,
-        "skipTaskbar": true
+        "alwaysOnTop": true
       }
     ]
   }
